@@ -1,0 +1,16 @@
+version: "0.1.0"
+attestations:
+  rollback_tested:
+    answer: true
+    by: "ramenprotokol"
+    evidence: "No prod deploy — library only, rollback is reverting the git tag."
+  oncall_notified:
+    answer: true
+    by: "ramenprotokol"
+  approver_signed_off:
+    answer: true
+    by: "ramenprotokol"
+  monitoring_reviewed:
+    answer: true
+    by: "ramenprotokol"
+    evidence: "No runtime infra — CLI tool, no services to monitor."
