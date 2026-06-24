@@ -45,3 +45,16 @@ def test_missing_manifest_returns_two(tmp_path, capsys):
     rc = main(["check", "--repo", str(tmp_path), "--ci-status", "success"])
     assert rc == 2
     assert "not found" in capsys.readouterr().err
+
+
+def test_module_is_runnable_via_dash_m():
+    # Guards the `python -m delivery_gate.cli` entrypoint: with no subcommand,
+    # argparse must exit 2 (proving main() actually executed, not a silent no-op).
+    import subprocess
+    import sys
+    proc = subprocess.run(
+        [sys.executable, "-m", "delivery_gate.cli"],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 2
+    assert "usage" in (proc.stdout + proc.stderr).lower()

@@ -43,3 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     output = render_json(results, go) if args.json else render_text(results, go)
     print(output)
     return 0 if go else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
