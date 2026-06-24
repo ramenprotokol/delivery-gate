@@ -1,0 +1,6 @@
+version: "0.1.0"
+attestations:
+  rollback_tested: {answer: true, by: Eng, evidence: "https://example/run"}
+  oncall_notified: {answer: true, by: Eng}
+  approver_signed_off: {answer: true, by: Boss}
+  monitoring_reviewed: {answer: true, by: Eng}
