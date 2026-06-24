@@ -74,7 +74,8 @@ not_applicable:
 2. **Tests passed in CI** — latest CI run on the gated commit is green
    (GitHub API, or an explicitly passed-in status).
 3. **Dependencies pinned** — scan declared deps; flag anything not locked to an
-   exact version. Maps to checklist §6.
+   exact version. **v0.1 targets Python projects** (`pyproject.toml` /
+   `requirements.txt`); other ecosystems are future work. Maps to checklist §6.
 4. **Clean release point** — no uncommitted changes; on a tagged commit; the git
    tag matches `version` in the manifest.
 
