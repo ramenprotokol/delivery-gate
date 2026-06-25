@@ -17,8 +17,11 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     check = sub.add_parser("check", help="Run the release gate.")
     check.add_argument("--repo", default=".", help="Path to the repo (default: .)")
-    check.add_argument("--ci-status", default=os.environ.get("DELIVERY_GATE_CI_STATUS"),
-                       help="CI outcome for the gated commit, e.g. 'success'.")
+    check.add_argument(
+        "--ci-status",
+        default=os.environ.get("DELIVERY_GATE_CI_STATUS"),
+        help="CI outcome for the gated commit, e.g. 'success'.",
+    )
     check.add_argument("--json", action="store_true", help="Emit JSON instead of text.")
     return parser
 

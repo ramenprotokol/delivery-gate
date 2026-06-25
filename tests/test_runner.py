@@ -1,4 +1,4 @@
-from delivery_gate.base import Result, Status, Kind
+from delivery_gate.base import Kind, Result, Status
 from delivery_gate.runner import build_checks, decide
 
 

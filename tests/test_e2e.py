@@ -1,13 +1,19 @@
 from pathlib import Path
+
 import delivery_gate.cli as climod
 
 FIX = Path(__file__).parent / "fixtures"
 
 
 class FakeGit:
-    def __init__(self, *a, **k): pass
-    def is_clean(self): return True
-    def tag_at_head(self): return "v0.1.0"
+    def __init__(self, *a, **k):
+        pass
+
+    def is_clean(self):
+        return True
+
+    def tag_at_head(self):
+        return "v0.1.0"
 
 
 def test_pass_repo_is_go(monkeypatch):

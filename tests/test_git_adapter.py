@@ -1,13 +1,16 @@
 from pathlib import Path
+
 from delivery_gate.adapters.git import GitAdapter
 
 
 def make_runner(responses):
     calls = []
+
     def runner(args):
         calls.append(tuple(args))
         key = " ".join(args)
         return responses.get(key, "")
+
     runner.calls = calls
     return runner
 

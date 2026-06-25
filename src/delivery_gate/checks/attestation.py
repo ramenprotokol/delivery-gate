@@ -20,21 +20,32 @@ class AttestationCheck(Check):
     def run(self, context: Context) -> Result:
         na = context.manifest.not_applicable.get(self.id)
         if na is not None:
-            return Result(self.id, self.label, Status.NA, self.kind,
-                          f"Marked not applicable: {na}")
+            return Result(self.id, self.label, Status.NA, self.kind, f"Marked not applicable: {na}")
         att = context.manifest.attestations.get(self.id)
         if att is None:
-            return Result(self.id, self.label, Status.FAIL, self.kind,
-                          "No attestation provided in release.yaml.")
+            return Result(
+                self.id,
+                self.label,
+                Status.FAIL,
+                self.kind,
+                "No attestation provided in release.yaml.",
+            )
         if not att.answer:
-            return Result(self.id, self.label, Status.FAIL, self.kind,
-                          "Attested as not done (answer: false).")
+            return Result(
+                self.id, self.label, Status.FAIL, self.kind, "Attested as not done (answer: false)."
+            )
         if not att.by:
-            return Result(self.id, self.label, Status.FAIL, self.kind,
-                          "Attestation has no attester ('by' is empty).")
+            return Result(
+                self.id,
+                self.label,
+                Status.FAIL,
+                self.kind,
+                "Attestation has no attester ('by' is empty).",
+            )
         evidence = f" Evidence: {att.evidence}" if att.evidence else ""
-        return Result(self.id, self.label, Status.PASS, self.kind,
-                      f"Attested by {att.by}.{evidence}")
+        return Result(
+            self.id, self.label, Status.PASS, self.kind, f"Attested by {att.by}.{evidence}"
+        )
 
 
 def build_attestation_checks() -> list[Check]:

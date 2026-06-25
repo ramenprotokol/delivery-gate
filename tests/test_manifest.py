@@ -1,6 +1,8 @@
 from pathlib import Path
+
 import pytest
-from delivery_gate.manifest import load, Manifest, Attestation, ManifestError
+
+from delivery_gate.manifest import Attestation, Manifest, ManifestError, load
 
 
 def _write(tmp_path: Path, text: str) -> Path:
@@ -10,7 +12,9 @@ def _write(tmp_path: Path, text: str) -> Path:
 
 
 def test_loads_valid_manifest(tmp_path):
-    p = _write(tmp_path, """
+    p = _write(
+        tmp_path,
+        """
 version: "0.1.0"
 attestations:
   rollback_tested:
@@ -19,7 +23,8 @@ attestations:
     evidence: "https://example/run"
 not_applicable:
   feature_flags: "No flags this release."
-""")
+""",
+    )
     m = load(p)
     assert isinstance(m, Manifest)
     assert m.version == "0.1.0"

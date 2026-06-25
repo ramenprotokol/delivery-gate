@@ -11,10 +11,15 @@ class CiStatusCheck(Check):
     def run(self, context: Context) -> Result:
         status = (context.ci_status or "").strip().lower()
         if status == "success":
-            return Result(self.id, self.label, Status.PASS, self.kind,
-                          "CI reported success.")
+            return Result(self.id, self.label, Status.PASS, self.kind, "CI reported success.")
         if not status:
-            return Result(self.id, self.label, Status.FAIL, self.kind,
-                          "CI status unknown (none provided) — treating as a fail.")
-        return Result(self.id, self.label, Status.FAIL, self.kind,
-                      f"CI status is '{status}', not 'success'.")
+            return Result(
+                self.id,
+                self.label,
+                Status.FAIL,
+                self.kind,
+                "CI status unknown (none provided) — treating as a fail.",
+            )
+        return Result(
+            self.id, self.label, Status.FAIL, self.kind, f"CI status is '{status}', not 'success'."
+        )

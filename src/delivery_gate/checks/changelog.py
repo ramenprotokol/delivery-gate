@@ -12,11 +12,18 @@ class ChangelogCheck(Check):
         path = context.repo_path / "CHANGELOG.md"
         version = context.manifest.version
         if not path.exists():
-            return Result(self.id, self.label, Status.FAIL, self.kind,
-                          "CHANGELOG.md not found at repo root.")
+            return Result(
+                self.id, self.label, Status.FAIL, self.kind, "CHANGELOG.md not found at repo root."
+            )
         text = path.read_text()
         if version in text:
-            return Result(self.id, self.label, Status.PASS, self.kind,
-                          f"Found an entry for {version}.")
-        return Result(self.id, self.label, Status.FAIL, self.kind,
-                      f"No CHANGELOG.md entry mentions {version}.")
+            return Result(
+                self.id, self.label, Status.PASS, self.kind, f"Found an entry for {version}."
+            )
+        return Result(
+            self.id,
+            self.label,
+            Status.FAIL,
+            self.kind,
+            f"No CHANGELOG.md entry mentions {version}.",
+        )

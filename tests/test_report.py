@@ -1,6 +1,7 @@
 import json
-from delivery_gate.base import Result, Status, Kind
-from delivery_gate.report import render_text, render_json
+
+from delivery_gate.base import Kind, Result, Status
+from delivery_gate.report import render_json, render_text
 
 RESULTS = [
     Result("changelog", "CHANGELOG updated", Status.PASS, Kind.AUTO, "ok"),

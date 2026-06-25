@@ -5,6 +5,7 @@ from delivery_gate.checks.ci_status import CiStatusCheck
 def ctx(ci_status):
     from delivery_gate.base import Context
     from delivery_gate.manifest import Manifest
+
     m = Manifest(version="0.1.0", attestations={}, not_applicable={})
     return Context(repo_path=None, manifest=m, ci_status=ci_status, git=None)
 

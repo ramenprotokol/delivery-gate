@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 
 def _default_runner(repo_path: Path) -> Callable[[list[str]], str]:
@@ -15,6 +15,7 @@ def _default_runner(repo_path: Path) -> Callable[[list[str]], str]:
             check=False,
         )
         return proc.stdout
+
     return run
 
 

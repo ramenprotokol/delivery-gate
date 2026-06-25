@@ -23,7 +23,11 @@ class ReleasePointCheck(Check):
             reasons.append(f"tag '{tag}' does not match manifest version '{version}'")
 
         if reasons:
-            return Result(self.id, self.label, Status.FAIL, self.kind,
-                          "; ".join(reasons))
-        return Result(self.id, self.label, Status.PASS, self.kind,
-                      f"Clean tree on tag '{tag}' matching {version}.")
+            return Result(self.id, self.label, Status.FAIL, self.kind, "; ".join(reasons))
+        return Result(
+            self.id,
+            self.label,
+            Status.PASS,
+            self.kind,
+            f"Clean tree on tag '{tag}' matching {version}.",
+        )

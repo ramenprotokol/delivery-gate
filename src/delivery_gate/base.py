@@ -1,23 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from delivery_gate.manifest import Manifest
     from delivery_gate.adapters.git import GitAdapter
+    from delivery_gate.manifest import Manifest
 
 
-class Status(str, Enum):
+class Status(StrEnum):
     PASS = "PASS"
     FAIL = "FAIL"
     NA = "NA"
 
 
-class Kind(str, Enum):
-    AUTO = "AUTO"          # machine-proven
+class Kind(StrEnum):
+    AUTO = "AUTO"  # machine-proven
     ATTESTED = "ATTESTED"  # human-claimed
 
 
@@ -33,9 +33,9 @@ class Result:
 @dataclass
 class Context:
     repo_path: Path
-    manifest: "Manifest"
+    manifest: Manifest
     ci_status: str | None
-    git: "GitAdapter"
+    git: GitAdapter
 
 
 class Check:
@@ -43,5 +43,5 @@ class Check:
     label: str = "Base check"
     kind: Kind = Kind.AUTO
 
-    def run(self, context: "Context") -> Result:
+    def run(self, context: Context) -> Result:
         raise NotImplementedError

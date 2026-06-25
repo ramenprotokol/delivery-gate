@@ -1,11 +1,11 @@
-from pathlib import Path
-from delivery_gate.base import Status, Kind
+from delivery_gate.base import Kind, Status
 from delivery_gate.checks.changelog import ChangelogCheck
 
 
 def ctx(tmp_path, version):
     from delivery_gate.base import Context
     from delivery_gate.manifest import Manifest
+
     m = Manifest(version=version, attestations={}, not_applicable={})
     return Context(repo_path=tmp_path, manifest=m, ci_status=None, git=None)
 

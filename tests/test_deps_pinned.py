@@ -5,6 +5,7 @@ from delivery_gate.checks.deps_pinned import DepsPinnedCheck
 def ctx(tmp_path):
     from delivery_gate.base import Context
     from delivery_gate.manifest import Manifest
+
     m = Manifest(version="0.1.0", attestations={}, not_applicable={})
     return Context(repo_path=tmp_path, manifest=m, ci_status=None, git=None)
 

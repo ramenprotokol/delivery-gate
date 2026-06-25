@@ -1,10 +1,11 @@
-from delivery_gate.base import Status, Kind
-from delivery_gate.manifest import Manifest, Attestation
-from delivery_gate.checks.attestation import build_attestation_checks, REQUIRED_ATTESTATIONS
+from delivery_gate.base import Kind, Status
+from delivery_gate.checks.attestation import REQUIRED_ATTESTATIONS, build_attestation_checks
+from delivery_gate.manifest import Attestation, Manifest
 
 
 def ctx(attestations, not_applicable=None):
     from delivery_gate.base import Context
+
     m = Manifest(version="0.1.0", attestations=attestations, not_applicable=not_applicable or {})
     return Context(repo_path=None, manifest=m, ci_status=None, git=None)
 
