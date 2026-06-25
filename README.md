@@ -1,6 +1,38 @@
 # delivery-gate
 
+[![CI](https://github.com/ramenprotokol/delivery-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/ramenprotokol/delivery-gate/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Python CLI that gives a hard **GO / NO-GO** on a software release. It auto-verifies machine-checkable items and requires a human-attested manifest for everything that needs judgment.
+
+## What it looks like
+
+```text
+$ delivery-gate check --repo tests/fixtures/fail_repo --ci-status failure
+```
+
+```
+delivery-gate report
+========================================
+[AUTO]      PASS  CHANGELOG updated for this version — Found an entry for 0.1.0.
+[AUTO]      FAIL  Tests passed in CI — CI status is 'failure', not 'success'.
+[AUTO]      PASS  Dependencies pinned to exact versions — All 1 dependencies are pinned.
+[AUTO]      FAIL  Clean, tagged release point — working tree has uncommitted changes
+[ATTESTED]  FAIL  Rollback procedure tested — Attested as not done (answer: false).
+[ATTESTED]  PASS  On-call engineer notified — Attested by Eng.
+[ATTESTED]  PASS  Named approver signed off — Attested by Boss.
+[ATTESTED]  PASS  Monitoring and alerts reviewed — Attested by Eng.
+
+Hold reasons (NO-GO):
+  - Tests passed in CI: CI status is 'failure', not 'success'.
+  - Clean, tagged release point: working tree has uncommitted changes
+  - Rollback procedure tested: Attested as not done (answer: false).
+
+Decision: NO-GO
+```
+
+Exit code is `1` (NO-GO).
 
 ## Why
 
@@ -9,18 +41,20 @@ Shipping mistakes happen when "are we ready?" is answered by memory and optimism
 ## Install
 
 ```bash
-pipx install delivery-gate      # once it is on PyPI
-# or from source:
 pip install -e .
 ```
 
 Requires Python 3.11+.
+
+> **Not yet on PyPI.** The `pip install -e .` from-source path above is the way to try it today.
 
 ## Usage
 
 ```bash
 delivery-gate check --repo . --ci-status success
 ```
+
+Want to see it block a release? `delivery-gate check --repo tests/fixtures/fail_repo --ci-status failure`
 
 Exits `0` on GO, `1` on NO-GO, `2` on a manifest or usage error.
 
@@ -32,7 +66,7 @@ Exits `0` on GO, `1` on NO-GO, `2` on a manifest or usage error.
 | `--ci-status STATUS` | `$DELIVERY_GATE_CI_STATUS` | CI outcome string, e.g. `success` |
 | `--json` | off | Emit JSON instead of human-readable text |
 
-### GitHub Actions example (`release.yaml`)
+### GitHub Actions example (workflow step)
 
 ```yaml
 - name: Release gate
@@ -93,6 +127,17 @@ not_applicable:
 ```
 
 Keys listed under `not_applicable` skip that check with `NA` status; `NA` does not block GO.
+
+## Prior art & where this fits
+
+| Tool | What it does | How delivery-gate differs |
+|------|-------------|--------------------------|
+| release-please / semantic-release | Automates release PRs and version bumps | They *perform* releases; delivery-gate *blocks* them until the checklist is satisfied |
+| conftest / OPA | General-purpose policy engine | delivery-gate is a focused release checklist with first-class support for human attestation alongside machine checks |
+| Danger | Checks code style, PR hygiene at PR time | Danger runs on pull requests and checks code; delivery-gate runs at release time and includes non-code human attestations |
+| pre-commit | Runs hooks at commit time | pre-commit is commit-time and local; delivery-gate is release-time, produces an auditable GO/NO-GO record, and can run in CI |
+
+The distinctive idea is the **AUTO vs ATTESTED** honesty model: every result is labeled with whether the tool actually verified the claim or whether a human declared it. Nothing is quietly inferred.
 
 ## Honesty note
 
