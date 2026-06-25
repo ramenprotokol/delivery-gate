@@ -5,3 +5,12 @@ dist/
 build/
 .pytest_cache/
 *.egg
+
+# Secrets / local env — never commit
+.env
+.env.*
+*.dev.vars
+secrets.env
+*.pem
+*.key
+.claude/
