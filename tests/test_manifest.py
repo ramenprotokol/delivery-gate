@@ -48,3 +48,22 @@ def test_bad_yaml_raises(tmp_path):
     p = _write(tmp_path, "version: [unterminated\n")
     with pytest.raises(ManifestError):
         load(p)
+
+
+def test_attestation_value_not_a_mapping_raises_cleanly(tmp_path):
+    # A typo'd manifest must fail with ManifestError, not an AttributeError traceback.
+    p = _write(tmp_path, 'version: "1.0.0"\nattestations:\n  rollback_tested: "yes"\n')
+    with pytest.raises(ManifestError, match="rollback_tested"):
+        load(p)
+
+
+def test_attestations_not_a_mapping_raises_cleanly(tmp_path):
+    p = _write(tmp_path, 'version: "1.0.0"\nattestations:\n  - rollback_tested\n')
+    with pytest.raises(ManifestError, match="attestations"):
+        load(p)
+
+
+def test_not_applicable_not_a_mapping_raises_cleanly(tmp_path):
+    p = _write(tmp_path, 'version: "1.0.0"\nnot_applicable:\n  - feature_flags\n')
+    with pytest.raises(ManifestError, match="not_applicable"):
+        load(p)
