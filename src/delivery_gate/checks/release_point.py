@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from delivery_gate.adapters.git import GitError
 from delivery_gate.base import Check, Context, Kind, Result, Status
 
 
@@ -13,10 +14,17 @@ class ReleasePointCheck(Check):
         git = context.git
         reasons: list[str] = []
 
-        if not git.is_clean():
+        try:
+            clean = git.is_clean()
+            tag = git.tag_at_head()
+        except GitError as exc:
+            return Result(
+                self.id, self.label, Status.FAIL, self.kind, f"could not read git state: {exc}"
+            )
+
+        if not clean:
             reasons.append("working tree has uncommitted changes")
 
-        tag = git.tag_at_head()
         if tag is None:
             reasons.append("no git tag points at HEAD")
         elif tag.lstrip("v") != version.lstrip("v"):

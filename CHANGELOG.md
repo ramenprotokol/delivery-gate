@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Fixed
+
+- `release_point` now fails closed when a git command errors. Before, a failed
+  `git status` (for example a corrupt index) was read as "clean", so a dirty,
+  tagged tree could get a GO.
+
 ## 0.1.0 - 2026-06-24
 
 First release of `delivery-gate`.

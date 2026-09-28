@@ -46,3 +46,19 @@ def test_fail_tag_mismatch():
 def test_fail_no_tag():
     r = ReleasePointCheck().run(ctx("0.1.0", FakeGit(True, None)))
     assert r.status is Status.FAIL
+
+
+class BrokenGit:
+    def is_clean(self):
+        from delivery_gate.adapters.git import GitError
+
+        raise GitError("git status --porcelain failed: fatal: index file corrupt")
+
+    def tag_at_head(self):
+        return "v0.1.0"
+
+
+def test_fail_when_git_errors():
+    r = ReleasePointCheck().run(ctx("0.1.0", BrokenGit()))
+    assert r.status is Status.FAIL
+    assert "git" in r.message.lower()
