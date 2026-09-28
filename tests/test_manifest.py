@@ -67,3 +67,42 @@ def test_not_applicable_not_a_mapping_raises_cleanly(tmp_path):
     p = _write(tmp_path, 'version: "1.0.0"\nnot_applicable:\n  - feature_flags\n')
     with pytest.raises(ManifestError, match="not_applicable"):
         load(p)
+
+
+@pytest.mark.parametrize("answer", ['"false"', '"no"', '"true"', "pending", "1", "0", "[true]"])
+def test_non_boolean_answer_is_rejected(tmp_path, answer):
+    # A quoted "false" is a non-empty string, and bool("false") is True. That
+    # used to turn an explicit "not done" into a PASS. Only YAML booleans count.
+    p = _write(
+        tmp_path,
+        f'version: "1.0.0"\nattestations:\n  rollback_tested: {{answer: {answer}, by: Eng}}\n',
+    )
+    with pytest.raises(ManifestError, match="rollback_tested"):
+        load(p)
+
+
+def test_boolean_answers_still_load(tmp_path):
+    p = _write(
+        tmp_path,
+        'version: "1.0.0"\nattestations:\n'
+        "  rollback_tested: {answer: true, by: Eng}\n"
+        "  oncall_notified: {answer: false, by: Eng}\n",
+    )
+    m = load(p)
+    assert m.attestations["rollback_tested"].answer is True
+    assert m.attestations["oncall_notified"].answer is False
+
+
+def test_blank_attester_counts_as_missing(tmp_path):
+    p = _write(
+        tmp_path, 'version: "1.0.0"\nattestations:\n  rollback_tested: {answer: true, by: "   "}\n'
+    )
+    assert load(p).attestations["rollback_tested"].by is None
+
+
+def test_non_string_attester_is_rejected(tmp_path):
+    p = _write(
+        tmp_path, 'version: "1.0.0"\nattestations:\n  rollback_tested: {answer: true, by: [Eng]}\n'
+    )
+    with pytest.raises(ManifestError, match="by"):
+        load(p)

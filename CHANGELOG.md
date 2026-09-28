@@ -8,6 +8,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+- A quoted or non-boolean `answer` in `release.yaml` (for example `answer: "false"`)
+  is now a manifest error (exit 2). Before, any non-empty string counted as `true`,
+  so `answer: "false"` passed as attested. A whitespace-only `by:` now counts as no
+  attester.
 - `release_point` now fails closed when a git command errors. Before, a failed
   `git status` (for example a corrupt index) was read as "clean", so a dirty,
   tagged tree could get a GO.

@@ -55,10 +55,21 @@ def load(path: Path) -> Manifest:
                 f"{path}: attestation '{key}' must be a mapping with an 'answer' field, "
                 f"got {type(val).__name__}."
             )
+        answer = val.get("answer", False)
+        if not isinstance(answer, bool):
+            raise ManifestError(
+                f"{path}: attestation '{key}' needs 'answer: true' or 'answer: false' "
+                f"(an unquoted YAML boolean), got {type(answer).__name__}."
+            )
+        by = val.get("by")
+        if by is not None and not isinstance(by, str):
+            raise ManifestError(
+                f"{path}: attestation '{key}' field 'by' must be a name, got {type(by).__name__}."
+            )
         attestations[key] = Attestation(
             key=key,
-            answer=bool(val.get("answer", False)),
-            by=val.get("by"),
+            answer=answer,
+            by=(by or "").strip() or None,
             evidence=val.get("evidence"),
         )
 

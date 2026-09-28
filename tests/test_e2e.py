@@ -55,3 +55,18 @@ def test_dirty_tree_is_nogo_even_when_git_status_errors(tmp_path):
 
     rc = climod.main(["check", "--repo", str(tmp_path), "--ci-status", "success"])
     assert rc == 1
+
+
+def test_quoted_false_answer_is_not_a_go(tmp_path, monkeypatch):
+    # The README quotes every string, so `answer: "false"` is an easy slip. It
+    # must never read as attested-true.
+    import shutil
+
+    shutil.copytree(FIX / "pass_repo", tmp_path, dirs_exist_ok=True)
+    manifest = (tmp_path / "release.yaml").read_text()
+    (tmp_path / "release.yaml").write_text(
+        manifest.replace("rollback_tested: {answer: true,", 'rollback_tested: {answer: "false",')
+    )
+    monkeypatch.setattr(climod, "GitAdapter", FakeGit)
+    rc = climod.main(["check", "--repo", str(tmp_path), "--ci-status", "success"])
+    assert rc != 0
