@@ -1,3 +1,4 @@
+import tracemalloc
 from pathlib import Path
 
 import pytest
@@ -167,3 +168,20 @@ def test_deeply_nested_yaml_is_a_manifest_error(tmp_path):
     p = _write(tmp_path, 'version: "1.0.0"\nx: ' + "[" * 5000 + "]" * 5000 + "\n")
     with pytest.raises(ManifestError, match="parse"):
         load(p)
+
+
+def test_many_aliases_are_refused_before_they_expand(tmp_path):
+    # One 999-entry mapping merged in 20,000 times is ~110 KB of YAML, but
+    # flattening it built a 20-million-entry list (~350 MB) before the entries
+    # cap could see it. Aliases are counted while the file is read instead.
+    x0 = "x0: &x0 {" + ", ".join(f"k{i}: 1" for i in range(999)) + "}"
+    x1 = "x1: {<<: [" + ", ".join(["*x0"] * 20000) + "]}"
+    p = _write(tmp_path, f'version: "1.0.0"\n{x0}\n{x1}\n')
+    tracemalloc.start()
+    try:
+        with pytest.raises(ManifestError, match="over 100 aliases"):
+            load(p)
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert peak < 50_000_000

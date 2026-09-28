@@ -14,10 +14,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
-- A `release.yaml` that nests too deeply, or whose merge keys (`<<`) grow one mapping past
-  1,000 entries, is now a manifest error (exit 2). Merge keys are expanded while the file
-  loads, before any field is checked, so a ~700-byte chain took 9 s and 760 MB and each
-  extra level multiplied that by nine. Deep nesting crashed with a traceback (exit 1).
+- A `release.yaml` that nests too deeply, uses more than 100 aliases (`*name`), or whose
+  merge keys (`<<`) grow one mapping past 1,000 entries, is now a manifest error (exit 2).
+  Merge keys are expanded while the file loads, before any field is checked, so a ~700-byte
+  chain took 9 s and 760 MB and each extra level multiplied that by nine, and a ~110 KB file
+  merging one large mapping 20,000 times built a ~350 MB list. Deep nesting crashed with a
+  traceback (exit 1).
 - `evidence` in an attestation must be text, matching its declared type. A YAML
   alias chain there was expanded into the report (383 bytes of YAML became ~3.8 MB
   of output, and a few more levels exhaust memory).

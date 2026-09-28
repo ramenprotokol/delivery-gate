@@ -12,10 +12,24 @@ class ManifestError(Exception):
 
 # A release.yaml mapping has a handful of keys. Merge keys (`<<: *x`) copy
 # entries while the file loads, so a chain of them grows exponentially; cap it.
+# Aliases are capped too, so a wide merge of one big mapping can't grow a list
+# of millions of entries before the mapping cap sees it.
 _MAX_MAPPING_ENTRIES = 1000
+_MAX_ALIASES = 100
 
 
 class _Loader(yaml.SafeLoader):
+    _aliases = 0
+
+    def compose_node(self, parent: yaml.Node | None, index: object) -> yaml.Node | None:
+        if self.check_event(yaml.AliasEvent):
+            self._aliases += 1
+            if self._aliases > _MAX_ALIASES:
+                raise yaml.composer.ComposerError(
+                    None, None, f"over {_MAX_ALIASES} aliases", self.peek_event().start_mark
+                )
+        return super().compose_node(parent, index)
+
     def flatten_mapping(self, node: yaml.MappingNode) -> None:
         super().flatten_mapping(node)
         if len(node.value) > _MAX_MAPPING_ENTRIES:
