@@ -84,7 +84,7 @@ These are verified by reading files or injected CI data. `delivery-gate` only cl
 |----|-----------------|
 | `changelog` | `CHANGELOG.md` has a Markdown heading naming the release version, e.g. `## [1.2.3]` |
 | `ci_status` | CI reported `success` (injected via `--ci-status`) |
-| `deps_pinned` | Every `pyproject.toml` dependency uses `==` pinning |
+| `deps_pinned` | Every `[project].dependencies` entry is pinned with `==` (not in a marker, no `*`). Fails if there is no `[project]` table or the dependencies are `dynamic` |
 | `release_point` | Working tree is clean AND a git tag at HEAD matches the version |
 
 ### ATTESTED checks (human-claimed)

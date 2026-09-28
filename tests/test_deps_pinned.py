@@ -36,3 +36,50 @@ def test_fail_when_no_pyproject(tmp_path):
     r = DepsPinnedCheck().run(ctx(tmp_path))
     assert r.status is Status.FAIL
     assert "pyproject.toml" in r.message
+
+
+def _run(tmp_path, toml):
+    (tmp_path / "pyproject.toml").write_text(toml)
+    return DepsPinnedCheck().run(ctx(tmp_path))
+
+
+def test_fail_when_only_the_marker_has_double_equals(tmp_path):
+    # `sys_platform == 'win32'` is an environment marker, not a version pin.
+    r = _run(
+        tmp_path,
+        '[project]\nname="x"\nversion="1"\n'
+        'dependencies=["rich==13.9.0", "pywin32; sys_platform == \'win32\'"]\n',
+    )
+    assert r.status is Status.FAIL
+    assert "pywin32" in r.message
+
+
+def test_pass_when_pinned_dep_has_a_marker(tmp_path):
+    r = _run(
+        tmp_path,
+        '[project]\nname="x"\nversion="1"\n'
+        "dependencies=[\"tomli==2.0.1; python_version < '3.11'\"]\n",
+    )
+    assert r.status is Status.PASS
+
+
+def test_fail_on_wildcard_pin(tmp_path):
+    r = _run(tmp_path, '[project]\nname="x"\nversion="1"\ndependencies=["rich==13.*"]\n')
+    assert r.status is Status.FAIL
+
+
+def test_fail_when_dependencies_are_dynamic(tmp_path):
+    # Deps come from elsewhere (e.g. requirements.txt); nothing was checked.
+    r = _run(tmp_path, '[project]\nname="x"\nversion="1"\ndynamic=["dependencies"]\n')
+    assert r.status is Status.FAIL
+
+
+def test_fail_when_no_project_table(tmp_path):
+    # e.g. a Poetry project: the gate cannot see the deps, so it must not PASS.
+    r = _run(tmp_path, '[tool.poetry.dependencies]\nrequests="^2.0"\n')
+    assert r.status is Status.FAIL
+
+
+def test_fail_when_dependencies_is_not_a_list_of_strings(tmp_path):
+    r = _run(tmp_path, '[project]\nname="x"\nversion="1"\ndependencies=["rich==13.9.0", 5]\n')
+    assert r.status is Status.FAIL
