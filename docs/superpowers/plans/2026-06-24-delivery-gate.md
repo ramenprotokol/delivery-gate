@@ -1512,7 +1512,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - [ ] `python -m pytest -v` — entire suite green.
 - [ ] `pip install -e .` then `delivery-gate check --repo . --ci-status success` runs and prints a report (delivery-gate gating itself).
 - [ ] Opus review pass (xhigh): read the full diff, re-run tests, check honesty labeling and fail-safe defaults.
-- [ ] Run `/privacyramen` before any push. Run the Repo Audit Crew before going public (PROJECT_CONVENTIONS Rule 2).
+- [ ] Run the privacy check before any push and a repository audit before going public (Rule 2).
 
 ## Spec coverage check
 

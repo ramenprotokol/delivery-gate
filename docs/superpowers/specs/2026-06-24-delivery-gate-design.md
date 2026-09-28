@@ -160,7 +160,6 @@ Matches the hallucination-hunter standard (pytest, green CI):
 
 ## 9. Project conventions
 
-- **Rule 1:** `About delivery-gate.md` created in the vault project folder before
-  real work.
-- **Rule 2:** run the Repo Audit Crew + `/privacyramen` before going public.
+- **Rule 1:** a short project note is written before real work.
+- **Rule 2:** run a repository audit and a privacy check before going public.
 - Honest demo data; AI co-author commit trailer kept.
