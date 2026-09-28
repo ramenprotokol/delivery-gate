@@ -10,6 +10,20 @@ class ManifestError(Exception):
     """Raised when release.yaml is missing, malformed, or incomplete."""
 
 
+# A release.yaml mapping has a handful of keys. Merge keys (`<<: *x`) copy
+# entries while the file loads, so a chain of them grows exponentially; cap it.
+_MAX_MAPPING_ENTRIES = 1000
+
+
+class _Loader(yaml.SafeLoader):
+    def flatten_mapping(self, node: yaml.MappingNode) -> None:
+        super().flatten_mapping(node)
+        if len(node.value) > _MAX_MAPPING_ENTRIES:
+            raise yaml.constructor.ConstructorError(
+                None, None, f"mapping has over {_MAX_MAPPING_ENTRIES} entries", node.start_mark
+            )
+
+
 @dataclass(frozen=True)
 class Attestation:
     key: str
@@ -30,8 +44,8 @@ def load(path: Path) -> Manifest:
     if not path.exists():
         raise ManifestError(f"Release manifest not found: {path}")
     try:
-        raw = yaml.safe_load(path.read_text()) or {}
-    except yaml.YAMLError as exc:
+        raw = yaml.load(path.read_text(), Loader=_Loader) or {}
+    except (yaml.YAMLError, RecursionError) as exc:
         raise ManifestError(f"Could not parse {path}: {exc}") from exc
     if not isinstance(raw, dict):
         raise ManifestError(f"{path} must be a YAML mapping at the top level.")

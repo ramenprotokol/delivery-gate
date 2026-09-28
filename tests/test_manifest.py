@@ -135,3 +135,35 @@ def test_non_string_evidence_is_rejected(tmp_path):
     p = _write(tmp_path, "\n".join(lines) + "\n")
     with pytest.raises(ManifestError, match="evidence"):
         load(p)
+
+
+def test_merge_key_chain_is_refused(tmp_path):
+    # Merge keys (`<<`) copy entries while the YAML loads, before any field is
+    # checked, so a chain of them grows 9x per level in an unused key: ~680 bytes
+    # took 9 s and 760 MB, and one more level exhausts memory.
+    lines = ['version: "1.0.0"', "x0: &x0 {a: 1}"]
+    lines += [f"x{i}: &x{i} {{<<: [{','.join([f'*x{i - 1}'] * 9)}]}}" for i in range(1, 7)]
+    p = _write(tmp_path, "\n".join(lines) + "\n")
+    with pytest.raises(ManifestError, match="entries"):
+        load(p)
+
+
+def test_ordinary_merge_key_still_loads(tmp_path):
+    p = _write(
+        tmp_path,
+        'version: "1.0.0"\n'
+        "defaults: &d {answer: true, by: Eng}\n"
+        "attestations:\n"
+        "  rollback_tested: {<<: *d, evidence: run-1}\n"
+        "  oncall_notified: *d\n",
+    )
+    m = load(p)
+    assert m.attestations["rollback_tested"] == Attestation("rollback_tested", True, "Eng", "run-1")
+    assert m.attestations["oncall_notified"].by == "Eng"
+
+
+def test_deeply_nested_yaml_is_a_manifest_error(tmp_path):
+    # PyYAML recurses per nesting level; this used to crash with a traceback.
+    p = _write(tmp_path, 'version: "1.0.0"\nx: ' + "[" * 5000 + "]" * 5000 + "\n")
+    with pytest.raises(ManifestError, match="parse"):
+        load(p)

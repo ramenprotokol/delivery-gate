@@ -127,9 +127,9 @@ not_applicable:
   feature_flags: "No feature flags in this release."
 ```
 
-`answer` must be an unquoted YAML boolean (`true` or `false`). A quoted `"false"` or any other
-value is rejected with exit code `2`, so it can never be read as a yes. A blank `by:` counts as
-no attester.
+`answer` must be an unquoted YAML boolean (`true` or `false`; PyYAML also reads `yes`/`no` and
+`on`/`off` as booleans). A quoted `"false"` or any other value is rejected with exit code `2`,
+so it can never be read as a yes. A blank `by:` counts as no attester.
 
 Keys listed under `not_applicable` skip that check with `NA` status; `NA` does not block GO.
 Each one needs a written reason (a non-empty string). `version` must be quoted: unquoted `1.10`
