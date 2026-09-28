@@ -71,11 +71,17 @@ def load(path: Path) -> Manifest:
             raise ManifestError(
                 f"{path}: attestation '{key}' field 'by' must be a name, got {type(by).__name__}."
             )
+        evidence = val.get("evidence")
+        if evidence is not None and not isinstance(evidence, str):
+            raise ManifestError(
+                f"{path}: attestation '{key}' field 'evidence' must be text, "
+                f"got {type(evidence).__name__}."
+            )
         attestations[key] = Attestation(
             key=key,
             answer=answer,
             by=(by or "").strip() or None,
-            evidence=val.get("evidence"),
+            evidence=evidence,
         )
 
     raw_na = raw.get("not_applicable") or {}

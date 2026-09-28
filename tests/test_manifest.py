@@ -123,3 +123,15 @@ def test_not_applicable_needs_a_written_reason(tmp_path, reason):
     p = _write(tmp_path, f'version: "1.0.0"\nnot_applicable:\n  rollback_tested: {reason}\n')
     with pytest.raises(ManifestError, match="rollback_tested"):
         load(p)
+
+
+def test_non_string_evidence_is_rejected(tmp_path):
+    # evidence is typed `str | None`. A YAML alias chain here (9 x 9 x ...) was
+    # stringified into the report: 383 bytes of YAML became ~3.8 MB of output,
+    # and a few more levels exhaust memory.
+    lines = ['version: "1.0.0"', 'x0: &x0 ["lol","lol","lol"]']
+    lines += [f"x{i}: &x{i} [*x{i - 1},*x{i - 1},*x{i - 1}]" for i in range(1, 4)]
+    lines += ["attestations:", "  rollback_tested: {answer: true, by: Eng, evidence: *x3}"]
+    p = _write(tmp_path, "\n".join(lines) + "\n")
+    with pytest.raises(ManifestError, match="evidence"):
+        load(p)

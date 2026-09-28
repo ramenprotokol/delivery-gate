@@ -14,6 +14,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+- `evidence` in an attestation must be text, matching its declared type. A YAML
+  alias chain there was expanded into the report (383 bytes of YAML became ~3.8 MB
+  of output, and a few more levels exhaust memory).
 - `deps_pinned` no longer counts an `==` inside an environment marker
   (`pywin32; sys_platform == 'win32'`) or a `==1.*` wildcard as a pin. It now fails
   instead of passing when `pyproject.toml` has no `[project]` table (for example
