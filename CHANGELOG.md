@@ -6,6 +6,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Security
+
+- Dev dependency `pytest` bumped from 8.3.3 to 9.1.1 (CVE-2025-71176, predictable
+  `/tmp/pytest-of-{user}` directories; dev/test only, not a runtime dependency).
+
 ### Fixed
 
 - `deps_pinned` no longer counts an `==` inside an environment marker
