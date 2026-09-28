@@ -8,6 +8,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+- `version` in `release.yaml` must be a quoted string (unquoted `1.10` loaded as
+  the float `1.1`), and each `not_applicable` entry needs a non-empty written reason
+  (`rollback_tested: false` under `not_applicable` used to skip the check).
 - A quoted or non-boolean `answer` in `release.yaml` (for example `answer: "false"`)
   is now a manifest error (exit 2). Before, any non-empty string counted as `true`,
   so `answer: "false"` passed as attested. A whitespace-only `by:` now counts as no

@@ -131,6 +131,8 @@ value is rejected with exit code `2`, so it can never be read as a yes. A blank 
 no attester.
 
 Keys listed under `not_applicable` skip that check with `NA` status; `NA` does not block GO.
+Each one needs a written reason (a non-empty string). `version` must be quoted: unquoted `1.10`
+would load as the number `1.1`.
 
 ## Prior art & where this fits
 

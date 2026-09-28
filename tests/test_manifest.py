@@ -106,3 +106,20 @@ def test_non_string_attester_is_rejected(tmp_path):
     )
     with pytest.raises(ManifestError, match="by"):
         load(p)
+
+
+@pytest.mark.parametrize("version", ["1.10", "1.0", "2", "[1, 2]", "{a: 1}", "true"])
+def test_unquoted_or_non_string_version_is_rejected(tmp_path, version):
+    # Unquoted `1.10` loads as the float 1.1, so the gate would check the wrong
+    # version. Only a quoted string is accepted.
+    p = _write(tmp_path, f"version: {version}\n")
+    with pytest.raises(ManifestError, match="version"):
+        load(p)
+
+
+@pytest.mark.parametrize("reason", ['""', '"   "', "false", "0", "[x]"])
+def test_not_applicable_needs_a_written_reason(tmp_path, reason):
+    # `rollback_tested: false` under not_applicable used to skip the check as NA.
+    p = _write(tmp_path, f'version: "1.0.0"\nnot_applicable:\n  rollback_tested: {reason}\n')
+    with pytest.raises(ManifestError, match="rollback_tested"):
+        load(p)

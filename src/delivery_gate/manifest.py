@@ -37,8 +37,13 @@ def load(path: Path) -> Manifest:
         raise ManifestError(f"{path} must be a YAML mapping at the top level.")
 
     version = raw.get("version")
-    if not version:
+    if version is None or version == "":
         raise ManifestError(f"{path} is missing required field 'version'.")
+    if not isinstance(version, str) or not version.strip():
+        raise ManifestError(
+            f"{path}: 'version' must be a quoted string such as \"1.2.3\", "
+            f"got {type(version).__name__}."
+        )
 
     raw_attestations = raw.get("attestations") or {}
     if not isinstance(raw_attestations, dict):
@@ -79,6 +84,11 @@ def load(path: Path) -> Manifest:
             f"{path}: 'not_applicable' must be a mapping of name -> reason, "
             f"got {type(raw_na).__name__}."
         )
+    for key, reason in raw_na.items():
+        if not isinstance(reason, str) or not reason.strip():
+            raise ManifestError(
+                f"{path}: not_applicable '{key}' needs a written reason (a non-empty string)."
+            )
     not_applicable = dict(raw_na)
     return Manifest(
         version=str(version),
