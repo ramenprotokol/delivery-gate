@@ -47,6 +47,8 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+# The design notes quote code as it was planned; do not reformat them.
+extend-exclude = ["docs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

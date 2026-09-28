@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   pull_request:
+permissions:
+  contents: read
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -32,4 +34,15 @@ jobs:
       - name: Smoke-test the CLI
         run: |
           delivery-gate --help
-          delivery-gate check --repo tests/fixtures/pass_repo --ci-status success
+          # GO path: a throwaway tagged repo built from the pass fixture must exit 0.
+          repo="$(mktemp -d)"
+          cp -R tests/fixtures/pass_repo/. "$repo"
+          git -C "$repo" init -q
+          git -C "$repo" add -A
+          git -C "$repo" -c user.name=ci -c user.email=ci@example.invalid commit -q -m release
+          git -C "$repo" tag v0.1.0
+          delivery-gate check --repo "$repo" --ci-status success
+          # NO-GO path: the fail fixture must exit 1 (not 0, not 2).
+          rc=0
+          delivery-gate check --repo tests/fixtures/fail_repo --ci-status failure || rc=$?
+          test "$rc" -eq 1
