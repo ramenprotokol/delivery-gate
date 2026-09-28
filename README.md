@@ -15,7 +15,7 @@ $ delivery-gate check --repo tests/fixtures/fail_repo --ci-status failure
 ```
 delivery-gate report
 ========================================
-[AUTO]      PASS  CHANGELOG updated for this version — Found an entry for 0.1.0.
+[AUTO]      FAIL  CHANGELOG updated for this version — No CHANGELOG.md heading mentions 0.1.0.
 [AUTO]      FAIL  Tests passed in CI — CI status is 'failure', not 'success'.
 [AUTO]      PASS  Dependencies pinned to exact versions — All 1 dependencies are pinned.
 [AUTO]      FAIL  Clean, tagged release point — working tree has uncommitted changes
@@ -25,6 +25,7 @@ delivery-gate report
 [ATTESTED]  PASS  Monitoring and alerts reviewed — Attested by Eng.
 
 Hold reasons (NO-GO):
+  - CHANGELOG updated for this version: No CHANGELOG.md heading mentions 0.1.0.
   - Tests passed in CI: CI status is 'failure', not 'success'.
   - Clean, tagged release point: working tree has uncommitted changes
   - Rollback procedure tested: Attested as not done (answer: false).
@@ -81,7 +82,7 @@ These are verified by reading files or injected CI data. `delivery-gate` only cl
 
 | ID | What it verifies |
 |----|-----------------|
-| `changelog` | `CHANGELOG.md` contains the release version string |
+| `changelog` | `CHANGELOG.md` has a Markdown heading naming the release version, e.g. `## [1.2.3]` |
 | `ci_status` | CI reported `success` (injected via `--ci-status`) |
 | `deps_pinned` | Every `pyproject.toml` dependency uses `==` pinning |
 | `release_point` | Working tree is clean AND a git tag at HEAD matches the version |

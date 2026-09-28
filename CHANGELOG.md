@@ -8,6 +8,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+- The `changelog` check now needs a Markdown heading that names the exact version
+  (`## [1.2.3]`, `## v1.2.3`, ...). It used a plain substring search, so the version
+  anywhere in the file passed, including prose like "no 0.1.0 entry", a link
+  reference, or a longer version (`1.0` matched `1.0.5`).
 - `version` in `release.yaml` must be a quoted string (unquoted `1.10` loaded as
   the float `1.1`), and each `not_applicable` entry needs a non-empty written reason
   (`rollback_tested: false` under `not_applicable` used to skip the check).
