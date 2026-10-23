@@ -13,6 +13,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   evidence. The decision is always recomputed from the deterministic checks. Works with any
   OpenAI-compatible API through `DELIVERY_GATE_LLM_BASE_URL`, `DELIVERY_GATE_LLM_MODEL` and
   `DELIVERY_GATE_LLM_API_KEY`. Optional `--brief-model` writes the final summary.
+- `delivery-gate cases`: runs fixed test cases through `investigate` against made-up git repos
+  and writes a run log (system prompt, tools, tool calls, briefs, PASS or FAIL per case).
 
 ### Security
 

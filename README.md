@@ -131,6 +131,70 @@ Exits `0` on GO, `1` on NO-GO, `2` when it could not even start (missing model o
 bad manifest). If the model API fails mid-investigation you still get the anchored decision
 with a note that the investigation was cut off. The checks never needed the model.
 
+### Test cases and run logs
+
+`delivery-gate cases` runs a fixed set of test cases through the same `investigate` flow
+against made-up repos, then writes a plain-text run log. It does not change how
+`investigate` works. It only records what the model was sent and what it did.
+
+```bash
+delivery-gate cases --cases CASES.jsonl --repos REPOS.json --log RUN.log [--model NAME] [--max-steps N]
+```
+
+It uses the same `DELIVERY_GATE_LLM_*` settings as `investigate`. It exits `0` when the run
+completed, even if some cases failed, and `2` on usage errors such as an unreadable file or
+a missing model or key. The API key is never written to the log.
+
+`REPOS.json` names the made-up repos. Each one is built fresh in a temp git repo for every
+case, then removed. Every key is optional.
+
+```json
+{"r1": {"files": {"release.yaml": "...", "CHANGELOG.md": "...", "src/app.py": "..."},
+        "tags": ["v1.4.0"],
+        "uncommitted": {"src/app.py": "...changed..."},
+        "untracked": {"notes.txt": "..."}}}
+```
+
+`files` are committed in one commit (author `Mock <mock@example.invalid>`, fixed dates, so
+runs are reproducible). `tags` are put on HEAD. `uncommitted` is written over tracked files.
+`untracked` is written last. A repo needs a `release.yaml` for `investigate` to start.
+
+`CASES.jsonl` has one case per line:
+
+```json
+{"id": 1, "purpose": "Bug being fixed", "command": "delivery-gate investigate --ci-status failure", "repo": "r1", "ci_status": "failure",
+ "expect": {"decision": "NO-GO", "findings_mention": ["CHANGELOG"], "findings_not_mention": ["CI"], "must_call": ["run_checks"], "must_not_call": ["read_file"], "max_findings": null}}
+```
+
+`command` is only text shown in the log. `ci_status` is what the gate is given. The
+`expect` keys are all optional:
+
+- `decision`: `GO` or `NO-GO`, the brief's decision.
+- `findings_mention` and `findings_not_mention`: substrings, case-insensitive, checked
+  against the brief's summary and findings (check id, label, explanation, fix).
+- `must_call` and `must_not_call`: tool names. The real ones are `git_status`, `git_tags`,
+  `list_files`, `read_file`, `read_manifest`, `ci_status`, `run_checks` and `finish`.
+- `max_findings`: the most findings the brief may have.
+
+A case passes only if every expectation holds. Otherwise it fails with one short reason per
+broken expectation. A crash or a model API error is a fail with the error, and the run
+goes on.
+
+The log starts with the run time, model, endpoint (scheme and host only), the full system
+prompt and the tool definitions as sent. They are printed again only if they change between
+cases. Each case then lists what the model said, each tool call with its result, the brief
+and the result, and the log ends with `cases passed: X of N`. Temp repo paths show as
+`<repo>`.
+
+```
+case 1  (Bug being fixed)
+  user: delivery-gate investigate --ci-status failure   [repo r1]
+  tool call: run_checks({}) -> [{"check_id": "changelog", ...
+  brief: NO-GO | The changelog has no 1.4.0 heading. | findings: 1
+    - [changelog] CHANGELOG.md has no heading for 1.4.0. fix: add one
+  result: FAIL  (findings never mention "zebra")
+```
+
 ## The checks
 
 ### AUTO checks (machine-proven)
