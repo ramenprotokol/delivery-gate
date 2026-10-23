@@ -34,9 +34,27 @@ class GitAdapter:
         self.repo_path = Path(repo_path)
         self.runner = runner or _default_runner(self.repo_path)
 
+    def repo_root(self) -> Path:
+        """The root of whatever git repository encloses this path.
+
+        With cwd inside a repo, git walks up and reports the *enclosing* repo,
+        which is not necessarily the repo the gate was pointed at.
+        """
+        return Path(self.runner(["rev-parse", "--show-toplevel"]).strip()).resolve()
+
+    def is_repo_root(self) -> bool:
+        return self.repo_root() == self.repo_path.resolve()
+
+    def status_porcelain(self) -> str:
+        return self.runner(["status", "--porcelain"])
+
     def is_clean(self) -> bool:
-        return self.runner(["status", "--porcelain"]).strip() == ""
+        return self.status_porcelain().strip() == ""
+
+    def tags_at_head(self) -> list[str]:
+        out = self.runner(["tag", "--points-at", "HEAD"]).strip()
+        return out.splitlines() if out else []
 
     def tag_at_head(self) -> str | None:
-        out = self.runner(["tag", "--points-at", "HEAD"]).strip()
-        return out.splitlines()[0] if out else None
+        tags = self.tags_at_head()
+        return tags[0] if tags else None

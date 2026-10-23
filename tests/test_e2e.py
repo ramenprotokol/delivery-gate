@@ -9,6 +9,12 @@ class FakeGit:
     def __init__(self, *a, **k):
         pass
 
+    def is_repo_root(self):
+        return True
+
+    def repo_root(self):
+        return FIX
+
     def is_clean(self):
         return True
 

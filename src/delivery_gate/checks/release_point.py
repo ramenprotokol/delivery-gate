@@ -15,6 +15,16 @@ class ReleasePointCheck(Check):
         reasons: list[str] = []
 
         try:
+            if not git.is_repo_root():
+                root = git.repo_root()
+                return Result(
+                    self.id,
+                    self.label,
+                    Status.FAIL,
+                    self.kind,
+                    f"not the root of a git repository (it sits inside '{root}'); "
+                    f"a clean, tagged release point cannot be verified for this path",
+                )
             clean = git.is_clean()
             tag = git.tag_at_head()
         except GitError as exc:

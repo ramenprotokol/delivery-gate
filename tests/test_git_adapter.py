@@ -39,6 +39,34 @@ def test_tag_at_head_none_when_no_tag():
     assert g.tag_at_head() is None
 
 
+def test_repo_root_uses_toplevel():
+    runner = make_runner({"rev-parse --show-toplevel": "/somewhere/repo\n"})
+    g = GitAdapter(Path("/somewhere/repo/sub"), runner=runner)
+    assert g.repo_root() == Path("/somewhere/repo")
+
+
+def test_is_repo_root_true_at_root():
+    runner = make_runner({"rev-parse --show-toplevel": "/somewhere/repo\n"})
+    g = GitAdapter(Path("/somewhere/repo"), runner=runner)
+    assert g.is_repo_root() is True
+
+
+def test_is_repo_root_false_below_root():
+    runner = make_runner({"rev-parse --show-toplevel": "/somewhere/repo\n"})
+    g = GitAdapter(Path("/somewhere/repo/sub"), runner=runner)
+    assert g.is_repo_root() is False
+
+
+def test_is_repo_root_with_real_nested_directory(tmp_path):
+    # `git -C nested rev-parse --show-toplevel` reports the enclosing repo:
+    # the adapter must notice that `nested` is not itself the repo root.
+    (tmp_path / "nested").mkdir()
+    _git(tmp_path, "init", "-q")
+    assert GitAdapter(tmp_path).is_repo_root() is True
+    assert GitAdapter(tmp_path / "nested").is_repo_root() is False
+    assert GitAdapter(tmp_path / "nested").repo_root() == tmp_path.resolve()
+
+
 def _git(repo, *args):
     import subprocess
 

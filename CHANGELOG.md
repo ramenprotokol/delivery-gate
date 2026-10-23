@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Added
+
+- `delivery-gate investigate`: a chat model picks which release checks to run (git status and
+  tags, read a file, CI status, the manifest, list files) and writes a GO/NO-GO brief with
+  evidence. The decision is always recomputed from the deterministic checks. Works with any
+  OpenAI-compatible API through `DELIVERY_GATE_LLM_BASE_URL`, `DELIVERY_GATE_LLM_MODEL` and
+  `DELIVERY_GATE_LLM_API_KEY`. Optional `--brief-model` writes the final summary.
+
 ### Security
 
 - CI workflow runs with a read-only `GITHUB_TOKEN` (`permissions: contents: read`).
@@ -14,6 +22,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 
+- `release_point` (and the investigate-mode `git_status`/`git_tags` tools) no longer describe
+  the *enclosing* repository when `--repo` is a directory inside another repository. Before,
+  git ran with its cwd at `--repo`, walked up to the outer repository, and reported that
+  outer repo's dirt and tags as the gated repo's release point — so a NO-GO could blame the
+  wrong repo and the suggested fix (`git tag` at HEAD) would tag the outer repo. It now fails
+  with "not the root of a git repository (it sits inside ...)".
 - A `release.yaml` that nests too deeply, uses more than 100 aliases (`*name`), or whose
   merge keys (`<<`) grow one mapping past 1,000 entries, is now a manifest error (exit 2).
   Merge keys are expanded while the file loads, before any field is checked, so a ~700-byte

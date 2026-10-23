@@ -74,6 +74,63 @@ Exits `0` on GO, `1` on NO-GO, `2` on a manifest or usage error.
   run: delivery-gate check --repo . --ci-status ${{ job.status }}
 ```
 
+## Investigate mode
+
+`check` tells you a release is blocked; `investigate` works out why. A model drives
+read-only tools (git status/tags, `list_files`, `read_file`, the parsed manifest, the
+injected CI status, and `run_checks` — the authoritative results), decides what to look
+at next, and returns a GO/NO-GO brief: a summary, one finding per blocker, and a
+concrete fix.
+
+The verdict is anchored: it is always recomputed from the deterministic checks, so the
+model cannot talk a failing release into a GO — even if repo contents (a planted note in
+a CHANGELOG, say) tell it to. Hidden files and secret-looking files (dotfiles,
+`.env`-style files, keys, certificates) are never listed and never read, so an
+investigation cannot dump secrets into the conversation or the trace. File reads are
+capped at 20,000 bytes, streamed rather than slurped, and the result is flagged when a
+file is longer — so partial evidence is never mistaken for the whole file.
+
+```bash
+delivery-gate investigate --repo . --ci-status success
+delivery-gate investigate --repo . --ci-status failure --trace --brief-model <another model>
+```
+
+### Investigate flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--repo PATH` | `.` | Path to the repository root |
+| `--ci-status STATUS` | `$DELIVERY_GATE_CI_STATUS` | CI outcome string, e.g. `success` |
+| `--json` | off | Emit JSON instead of human-readable text |
+| `--max-steps N` | `12` | Maximum model round-trips; one round-trip may issue several tool calls. If the cap runs out before the model finishes, the brief says so explicitly |
+| `--model NAME` | `$DELIVERY_GATE_LLM_MODEL` | Model that drives the tool loop (no default) |
+| `--brief-model NAME` | off | A second model that writes the final brief summary after the loop ends. On model API errors it falls back to the loop model's summary |
+| `--trace` | off | Print each tool call and a short result to **stderr**, tagged with the model that made the call (stdout stays clean for `--json`) |
+
+### Configuration
+
+`investigate` talks to any OpenAI-compatible chat API with tool calling, using your own
+API key. Set three environment variables:
+
+- `DELIVERY_GATE_LLM_BASE_URL`: the API base URL. Default `https://openrouter.ai/api/v1`.
+- `DELIVERY_GATE_LLM_MODEL`: the model name. There is no default. Use an open-source
+  model with tool calling. `--model` overrides it.
+- `DELIVERY_GATE_LLM_API_KEY`: your API key. It is sent as `Authorization: Bearer <key>`
+  and is never printed or logged.
+
+```bash
+export DELIVERY_GATE_LLM_BASE_URL=https://openrouter.ai/api/v1
+export DELIVERY_GATE_LLM_MODEL="<an open-source model with tool calling>"
+export DELIVERY_GATE_LLM_API_KEY=sk-or-...
+delivery-gate investigate --repo . --ci-status failure
+```
+
+A 503 from the API is retried twice with a short pause. Any other error fails at once.
+
+Exits `0` on GO, `1` on NO-GO, `2` when it could not even start (missing model or API key,
+bad manifest). If the model API fails mid-investigation you still get the anchored decision
+with a note that the investigation was cut off. The checks never needed the model.
+
 ## The checks
 
 ### AUTO checks (machine-proven)
@@ -85,7 +142,7 @@ These are verified by reading files or injected CI data. `delivery-gate` only cl
 | `changelog` | `CHANGELOG.md` has a Markdown heading naming the release version, e.g. `## [1.2.3]` |
 | `ci_status` | CI reported `success` (injected via `--ci-status`) |
 | `deps_pinned` | Every `[project].dependencies` entry is pinned with `==` (not in a marker, no `*`). Fails if there is no `[project]` table or the dependencies are `dynamic` |
-| `release_point` | Working tree is clean AND a git tag at HEAD matches the version |
+| `release_point` | `--repo` is the root of a git repository, the working tree is clean AND a git tag at HEAD matches the version. Fails (rather than inheriting the enclosing repo's state) when `--repo` is a directory inside another repository |
 
 ### ATTESTED checks (human-claimed)
 
